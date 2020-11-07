@@ -103,6 +103,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		sprintf(fname, "%s%s.so", modpath, moduleNames->strList[i]);
 		printf("OKAY about to dlopen file: %s\n", fname);
 		
+		// open the shared library
 		void *libHandle = NULL;
 		libHandle = dlopen (fname, RTLD_LAZY);
 
@@ -114,9 +115,24 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		}
 		dlerror();
 
-		dlclose(libHandle); // close it
+		// try to do the sym stuff, 
+		char* (*fnName)();
+		char* error;
+
+		fnName = dlsym(libHandle, "helloWorld");
+		if ((error = dlerror()) != NULL)  {
+			fprintf (stderr, "DL error trying to find 'helloWorld' : %s\n", error);
+			return -1;
+		}
+
+		// try to call a function from hellowWorld
+		printf("function helloWorld returns the string: %s\n", (*fnName)());
 
 
+		// close the shared library with the handle
+		dlclose(libHandle);
+
+		puts("libHandle closed");
 	}
 
 	return moduleList->nModules;
