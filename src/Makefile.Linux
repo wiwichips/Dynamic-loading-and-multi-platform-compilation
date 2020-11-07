@@ -1,0 +1,14 @@
+
+#
+# Makefile specific to the Linux environment
+#
+
+## include the base makefile, taking all of the default definitions
+include Makefile.Common
+
+## override LDLIBS from the base makefile
+LDLIBS=-ldl
+
+## The targets get inherited from the included makefile, so the
+## top-level target rule remains the same
+
