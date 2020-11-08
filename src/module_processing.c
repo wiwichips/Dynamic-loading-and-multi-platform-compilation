@@ -126,7 +126,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		}
 
 		// try to call a function from hellowWorld
-		printf("function helloWorld returns the string: %s\n", (*fnName)("hello world"));
+		printf("function helloWorld returns the string: %s\n", (*fnName)("he said: \"okay.\" Can you believe that?"));
 
 
 		// close the shared library with the handle

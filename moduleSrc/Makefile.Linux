@@ -1,0 +1,44 @@
+
+CC		= gcc
+CFLAGS	= -g -Wall -fPIC -I../src
+
+LIB_SHOUT	= ../modules/shout.so
+OBJ_SHOUT	= shout.o 
+
+LIB_BOX	= ../modules/box.so
+OBJ_BOX	= box.o 
+
+LIB_PARAN	= ../modules/paren.so
+OBJ_PARAN	= paren.o 
+
+LIB_QUOTE	= ../modules/quote.so
+OBJ_QUOTE	= quote.o 
+
+LIBS = $(LIB_SHOUT) $(LIB_BOX) $(LIB_PARAN) $(LIB_QUOTE)
+OBJS = $(OBJ_SHOUT) $(OBJ_BOX) $(OBJ_PARAN) $(OBJ_QUOTE)
+
+
+
+## Build everything by default
+all world : $(LIBS)
+	echo -e "\033[0;32m\t~~~\t~~~\t~~~\t~~~\n moduleSrc/Makefile.Linux ~ all tasks complete \n\t~~~\t~~~\t~~~\t~~~ \033[0m"
+
+$(LIB_SHOUT):	$(OBJ_SHOUT)
+	ls
+	$(CC) -shared -Wl,-soname,$(LIB_SHOUT) -o $(LIB_SHOUT) $(OBJ_SHOUT)
+
+$(LIB_BOX):	$(OBJ_BOX)
+	ls
+	$(CC) -shared -Wl,-soname,$(LIB_BOX) -o $(LIB_BOX) $(OBJ_BOX)
+
+$(LIB_PARAN):	$(OBJ_PARAN)
+	$(CC) -shared -Wl,-soname,$(LIB_PARAN) -o $(LIB_PARAN) $(OBJ_PARAN)
+
+$(LIB_QUOTE):	$(OBJ_QUOTE)
+	$(CC) -shared -Wl,-soname,$(LIB_QUOTE) -o $(LIB_QUOTE) $(OBJ_QUOTE)
+
+
+clean:
+	- rm -f $(LIBS)
+	- rm -f $(OBJS)
+

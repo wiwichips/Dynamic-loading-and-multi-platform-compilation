@@ -1,0 +1,19 @@
+##
+##	Makefile for top-level module formatter project.
+##  This makefile simply calls the lower level makefiles
+##
+
+
+all world : dummy
+	echo "\033[0;31m ~ in Makefile.Linux ~~~~~~~~~~~~ \033[0m"
+	( cd "src" ; make -f Makefile.Linux ) ; \
+	( cd "moduleSrc" ; make -f Makefile.Linux )
+
+clean : dummy
+	SCRIPTDIR=`pwd`; \
+	( cd "src" ; make -f Makefile.Linux clean ) ; \
+	( cd "moduleSrc" ; make -f Makefile.Linux clean )
+
+dummy :
+
+

@@ -1,0 +1,30 @@
+
+#
+# Makefile specific to the Darwin/MacOSX environment
+#
+
+CC		= gcc
+CFLAGS	= -g -fPIC -I../src
+
+LIB_SHOUT	= ../modules/shout.so
+OBJ_SHOUT	= shout.o 
+
+LIB_BOX	= ../modules/box.so
+OBJ_BOX	= box.o 
+
+LIBS = $(LIB_SHOUT) $(LIB_BOX)
+OBJS = $(OBJ_SHOUT) $(OBJ_BOX)
+
+## Build everything by default
+all world : $(LIBS)
+
+$(LIB_SHOUT):	$(OBJ_SHOUT)
+	$(CC) -dynamiclib -Wl,-dylib,-o,$(LIB_SHOUT) $(OBJ_SHOUT)
+
+$(LIB_BOX):	$(OBJ_BOX)
+	$(CC) -dynamiclib -Wl,-dylib,-o,$(LIB_BOX) $(OBJ_BOX)
+
+clean:
+	- rm -f $(LIBS)
+	- rm -f $(OBJS)
+
