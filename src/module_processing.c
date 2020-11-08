@@ -119,14 +119,14 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		char* (*fnName)();
 		char* error;
 
-		fnName = dlsym(libHandle, "helloWorld");
+		fnName = dlsym(libHandle, "transform");
 		if ((error = dlerror()) != NULL)  {
 			fprintf (stderr, "DL error trying to find 'helloWorld' : %s\n", error);
 			return -1;
 		}
 
 		// try to call a function from hellowWorld
-		printf("function helloWorld returns the string: %s\n", (*fnName)());
+		printf("function helloWorld returns the string: %s\n", (*fnName)("hello world"));
 
 
 		// close the shared library with the handle
