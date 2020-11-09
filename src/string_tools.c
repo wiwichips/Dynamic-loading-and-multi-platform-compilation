@@ -4,6 +4,9 @@
 
 #include "string_tools.h"
 
+// fix strdup portabiluty by defining it
+#define strdup(x)(strcpy(malloc(strlen(x) + 1), x))
+
 /**
  * Tool to manage a list of strings
  */
@@ -32,7 +35,7 @@ int addStringToList(StringList *list, char *newString)
 		return -1;
 	}
 
-	list->strList[list->nStrings++] = strdup(newString);
+	list->strList[list->nStrings++] = strdup(newString); //strdup is GNU
 	return list->nStrings;
 }
 
@@ -45,8 +48,18 @@ int destroyStringList(StringList *list)
 	while (list->nStrings > 0) {
 		free(list->strList[--list->nStrings]);
 	}
+	free(list->strList); // I added this - works on linux
 	free(list);
 	return 0;
+
+	// alternative code for deleting, not as clean
+
+	// for (int i = 0; i < list->nStrings; i++) {
+	// 	free(list->strList[i]);
+	// }
+	// free(list->strList);
+	// free(list);
+	// return 0;
 }
 
 /**

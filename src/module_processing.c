@@ -42,6 +42,17 @@ ModuleList *createEmptyModuleList(int max)
 	return newList;
 }
 
+int destroyModuleList(ModuleList* mList) {
+	// go through the modlist
+	for (int i = 0; i < mList->nModules; i++) {
+		free(mList->modList[i].name);
+		free(mList->modList[i].data);
+		//WINDOWS TODO ??? sharedObject
+		free(&(mList->modList[i]));
+	}
+	free(mList->modList);
+	// free(mList);
+}
 
 /**
  * Load all the modules.  The short names are provided in the
@@ -126,13 +137,19 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		}
 
 		// try to call a function from hellowWorld
-		printf("function helloWorld returns the string: %s\n", (*fnName)("he said: \"okay.\" Can you believe that?"));
+		char* str = (*fnName)("he said: \"okay.\" Can you believe that?");
+		printf("function helloWorld returns the string: %s\n", str);
+		free(str);
+		str = NULL;
 
 
 		// close the shared library with the handle
 		dlclose(libHandle);
 
 		puts("libHandle closed");
+
+		// free any memory etc
+		destroyStringList(modulePathList);
 	}
 
 	return moduleList->nModules;
@@ -149,24 +166,28 @@ unloadAllModules(ModuleList *modules)
 	void (*termSymb)(void *);
 	int i;
 
+	puts("unloadAllModules just called");
+	destroyModuleList(modules);
+
 	for (i = 0; i < modules->nModules; i++) {
 
 		/**
 		 * Clean up by calling the finalization function
 		 */
 		/** ... add your code here ... */
-
+		
 
 		/**
 		 * Now unload the library
 		 */
 		/** ... add your code here ... */
-
+		
 
 		/**
 		 * Clean up any other memory that we have to
 		 */
 		/** ... add your code here ... */
+
 
 	}
 

@@ -174,6 +174,7 @@ main(int argc, char **argv)
 	unloadAllModules(loadedModules);
 	
 	destroyStringList(moduleNames);
+	free(loadedModules);
 
 	return exitStatus;
 }
