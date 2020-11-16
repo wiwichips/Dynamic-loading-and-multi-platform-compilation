@@ -68,6 +68,16 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 {
 	StringList *modulePathList;
 	int i;
+	char fname[20] = "";
+	char* (*fnName)();
+	char* error;
+
+	// non windows based definitions
+	#ifndef OS_WINDOWS
+	void *libHandle = NULL;
+	#else
+	HMODULE libHandle = NULL;
+	#endif
 
 	/**
 	 * Convert path to a list of strings.  This will leave
@@ -87,86 +97,40 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 #			endif
 			);
 
-
-	/**
-	 * Load all the modules
-	 */
+	// load all modules passed
 	for (i = 0; i < moduleNames->nStrings; i++) {
-
-		/**
-		 * Do the work to locate and load the module
-		 * whose short name (e.g.; "box") is in
-		 *    moduleNames->strList[i]
-		 *
-		 * Use the moduleList structure to hold your
-		 * modules.
-		 */
-
-		/** ... add your code here ... */
-		printf("Searching for module '%s'\n", moduleNames->strList[i]);
-		
-		puts("~~~~~~~~~~~~~~~~~~~~~");
-		printf("modpath = %s\n", modpath);
-		printf("moduleNames->strList[i] = %s\n", moduleNames->strList[i]);
-
-
-		// okay so I can successfully find the file given the modpaht and name
-		char fname[20] = "";
 		#ifndef OS_WINDOWS
 		sprintf(fname, "%s%s.so", modpath, moduleNames->strList[i]);
 		#else
 		sprintf(fname, "%s%s.dll", modpath, moduleNames->strList[i]);
 		#endif
-		printf("OKAY about to dlopen file: %s\n", fname);
-		
 		
 		// open the shared library
-		
 		#ifndef OS_WINDOWS
-		void *libHandle = NULL;
 		libHandle = dlopen (fname, RTLD_LAZY);
 		#else
-		HMODULE libHandle = NULL;
 		libHandle = LoadLibrary(fname);
 		#endif
 		
-
+		// check validity
 		if (libHandle == NULL) {
 			#ifndef OS_WINDOWS
 			fprintf(stderr, "Failed loading library : %s\n", dlerror());
+			dlerror();
 			#else
 			fprintf(stderr, "Failed loading library\n");
 			#endif
 			return -1;
-		} else {
-			printf("libhandle = %p\n", libHandle);
 		}
-		
-		
-		#ifndef OS_WINDOWS
-		dlerror();
-		#endif
 
-		// try to do the sym stuff, 
-		#ifndef OS_WINDOWS
-		char* (*fnName)();
-		#else
-		// FARPROC fnName;
-		char* (*fnName)();
-		#endif
-		char* error;
-		
-
+		// get the pointer address of the function being called
 		#ifndef OS_WINDOWS
 		fnName = dlsym(libHandle, "transform"); // idea - make a dlsym wrapper 
 		#else
-		FARPROC farpName = GetProcAddress(libHandle, "transform");
-		printf("farpName = %p\n", farpName);
-		printf("libHandle = %p\n", libHandle);
 		fnName = (char* (*) (char*) ) GetProcAddress(libHandle, "transform"); // idea - make a dlsym wrapper 
 		#endif
 		
-		
+		// check validity
 		#ifndef OS_WINDOWS
 		if ((error = dlerror()) != NULL)  {
 			fprintf (stderr, "DL error trying to find 'helloWorld' : %s\n", error);
@@ -179,21 +143,10 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		}
 		#endif
 		
-		puts("about to call the function fnName");
-		
-		puts("1");
-
-		// try to call a function from hellowWorld
-		printf("fnName = %p\n", fnName);
 		char* str = (*fnName)("he said: \"okay.\" Can you believe that?");
-		
-		puts("2");
-		
-		printf("function helloWorld returns the string: %s\n", str);
+		printf("transformed string: %s\n", str);
 		free(str);
 		str = NULL;
-
-		puts("all done with calling the function");
 
 		// close the shared library with the handle
 		#ifndef OS_WINDOWS
@@ -201,15 +154,6 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		#else
 		FreeLibrary(libHandle);
 		#endif
-		
-		puts("7");
-
-		puts("libHandle closed");
-
-		
-		
-		
-		puts("8");
 	}
 
 	// free any memory etc
