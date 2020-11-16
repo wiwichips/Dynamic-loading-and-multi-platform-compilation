@@ -206,11 +206,14 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 
 		puts("libHandle closed");
 
-		// free any memory etc
-		destroyStringList(modulePathList);
+		
+		
 		
 		puts("8");
 	}
+
+	// free any memory etc
+	destroyStringList(modulePathList);
 
 	return moduleList->nModules;
 }
