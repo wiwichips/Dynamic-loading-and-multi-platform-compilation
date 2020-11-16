@@ -49,6 +49,13 @@
 
 // remember to figure out Windows
 // https://stackoverflow.com/questions/142508/how-do-i-check-os-with-a-preprocessor-directive
+#elif defined(_WIN64)
+
+#	define OS_WINDOWS
+
+#elif defined(_WIN32)
+
+#	define OS_WINDOWS
 
 #else
 #   error Unknown operating system -- need more defines in os_defs.h!

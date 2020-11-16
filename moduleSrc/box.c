@@ -41,6 +41,7 @@ someFunction(char *data)
 {
 }
 
-char* transform(char* str) {
+OS_EXPORT char* OS_C_DECL
+transform(char* str) {
   return stringWrap(str, '[', ']');
 }

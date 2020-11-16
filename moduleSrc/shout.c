@@ -42,7 +42,8 @@ shoutItOut(char * data)
 	return -1;
 }
 
-char* transform(char* str) {
+OS_EXPORT char* OS_C_DECL
+transform(char* str) {
 	int length = strlen(str);
 	char* newStr = malloc(sizeof(char)* length + 1);
 	for (int i = 0; i < length; i++) {

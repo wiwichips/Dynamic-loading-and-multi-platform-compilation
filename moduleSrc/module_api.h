@@ -2,7 +2,8 @@
 #include <stdlib.h>
 
 // returns a malloc'd string
-char* transform(char* str);
+OS_EXPORT char* OS_C_DECL
+transform(char* str);
 
 // used by transform to add a character to the start and end
 char* stringWrap(char* str, char start, char end) {

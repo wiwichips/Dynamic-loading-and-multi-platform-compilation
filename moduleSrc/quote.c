@@ -7,7 +7,8 @@
 #include "module_api.h"
 
 
-char* transform(char* str) {
+OS_EXPORT char* OS_C_DECL
+transform(char* str) {
   int length = strlen(str);
   int quoOff = 0;
   char* newStr = malloc(sizeof(char) * length + 1);

@@ -10,9 +10,22 @@
 MYDLL	= shout.dll
 MYLIB	= shout.lib
 MYEXP	= shout.exp
-
-# List of all of the object files in your project
 MYOBJS	= shout.obj
+
+BOXDLL	= box.dll
+BOXLIB	= box.lib
+BOXEXP	= box.exp
+BOXOBJ  = box.obj
+
+quoteDLL	= quote.dll
+QUOTELIB	= quote.lib
+quoteEXP	= quote.exp
+quoteOBJ	= quote.obj
+
+parenDLL	= paren.dll
+PARENLIB	= paren.lib
+parenEXP	= paren.exp
+parenOBJ	= paren.obj
 
 # Macros for compiling
 CC		= cl
@@ -23,16 +36,30 @@ LDFLAGS	=
 LDLIBS =
 
 
-
 ##
 ##	Build Targets
 ##	-------------
 ##
 
+all: lib boxlib quotelib parenlib
+
 # Default target - build the library
 lib $(MYLIB) $(MYDLL):	$(MYOBJS)
 	link /dll /OUT:$(MYDLL) $(MYOBJS)
 	icacls $(MYDLL) /grant Everyone:RX
+
+boxlib $(BOXLIB) $(BOXDLL):	$(BOXOBJ)
+	link /dll /OUT:$(BOXDLL) $(BOXOBJ)
+	icacls $(BOXDLL) /grant Everyone:RX
+
+quotelib $(QUOTELIB) $(quoteDLL):	$(quoteOBJ)
+	link /dll /OUT:$(quoteDLL) $(quoteOBJ)
+	icacls $(quoteDLL) /grant Everyone:RX
+
+parenlib $(PARENLIB) $(parenDLL):	$(parenOBJ)
+	link /dll /OUT:$(parenDLL) $(parenOBJ)
+	icacls $(parenDLL) /grant Everyone:RX
+
 
 ##
 ##	Cleanup Targets
@@ -44,4 +71,15 @@ clean :
 	- del $(MYDLL)
 	- del $(MYEXP)
 	- del $(MYOBJS)
-
+	- del $(BOXLIB)
+	- del $(BOXDLL)
+	- del $(BOXEXP)
+	- del $(BOXOBJ)
+	- del $(quoteLIB)
+	- del $(quoteDLL)
+	- del $(quoteEXP)
+	- del $(quoteOBJ)
+	- del $(parenLIB)
+	- del $(parenDLL)
+	- del $(quoteEXP)
+	- del $(parenOBJ)

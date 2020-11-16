@@ -52,6 +52,7 @@ int destroyModuleList(ModuleList* mList) {
 	}
 	free(mList->modList);
 	// free(mList);
+	return 0;
 }
 
 /**
@@ -111,45 +112,104 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 
 		// okay so I can successfully find the file given the modpaht and name
 		char fname[20] = "";
+		#ifndef OS_WINDOWS
 		sprintf(fname, "%s%s.so", modpath, moduleNames->strList[i]);
+		#else
+		sprintf(fname, "%s%s.dll", modpath, moduleNames->strList[i]);
+		#endif
 		printf("OKAY about to dlopen file: %s\n", fname);
 		
+		
 		// open the shared library
+		
+		#ifndef OS_WINDOWS
 		void *libHandle = NULL;
 		libHandle = dlopen (fname, RTLD_LAZY);
+		#else
+		HMODULE libHandle = NULL;
+		libHandle = LoadLibrary(fname);
+		#endif
+		
 
 		if (libHandle == NULL) {
+			#ifndef OS_WINDOWS
 			fprintf(stderr, "Failed loading library : %s\n", dlerror());
+			#else
+			fprintf(stderr, "Failed loading library\n");
+			#endif
 			return -1;
 		} else {
 			printf("libhandle = %p\n", libHandle);
 		}
+		
+		
+		#ifndef OS_WINDOWS
 		dlerror();
+		#endif
 
 		// try to do the sym stuff, 
+		#ifndef OS_WINDOWS
 		char* (*fnName)();
+		#else
+		// FARPROC fnName;
+		char* (*fnName)();
+		#endif
 		char* error;
+		
 
-		fnName = dlsym(libHandle, "transform");
+		#ifndef OS_WINDOWS
+		fnName = dlsym(libHandle, "transform"); // idea - make a dlsym wrapper 
+		#else
+		FARPROC farpName = GetProcAddress(libHandle, "transform");
+		printf("farpName = %p\n", farpName);
+		printf("libHandle = %p\n", libHandle);
+		fnName = (char* (*) (char*) ) GetProcAddress(libHandle, "transform"); // idea - make a dlsym wrapper 
+		#endif
+		
+		
+		#ifndef OS_WINDOWS
 		if ((error = dlerror()) != NULL)  {
 			fprintf (stderr, "DL error trying to find 'helloWorld' : %s\n", error);
 			return -1;
 		}
+		#else
+		if (!fnName) {
+			fprintf (stderr, "DL error trying to find 'helloWorld' : \n");
+			return -1;
+		}
+		#endif
+		
+		puts("about to call the function fnName");
+		
+		puts("1");
 
 		// try to call a function from hellowWorld
+		printf("fnName = %p\n", fnName);
 		char* str = (*fnName)("he said: \"okay.\" Can you believe that?");
+		
+		puts("2");
+		
 		printf("function helloWorld returns the string: %s\n", str);
 		free(str);
 		str = NULL;
 
+		puts("all done with calling the function");
 
 		// close the shared library with the handle
+		#ifndef OS_WINDOWS
 		dlclose(libHandle);
+		#else
+		FreeLibrary(libHandle);
+		#endif
+		
+		puts("7");
 
 		puts("libHandle closed");
 
 		// free any memory etc
 		destroyStringList(modulePathList);
+		
+		puts("8");
 	}
 
 	return moduleList->nModules;
