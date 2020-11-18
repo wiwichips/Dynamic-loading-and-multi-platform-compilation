@@ -121,7 +121,8 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 {
 	StringList *modulePathList;
 	int i;
-	char* fname = calloc(0, sizeof(char) * (strlen(modpath) + 256));
+	// char* fname = calloc(0, sizeof(char) * (strlen(modpath) + 256));
+	char fname[5000];
 	char* (*fnName)();
 	char* error;
 
@@ -217,6 +218,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 	// free any memory etc
 	destroyStringList(modulePathList);
 	free(textData);
+	// free(fname);
 
 	return 0;
 }

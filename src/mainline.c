@@ -38,21 +38,29 @@ printHelp(char *progname)
 
 int
 transformInput(StringList *moduleNames, char *modpath) {
-	char* userInput = calloc(5000, sizeof(char));
-	puts("Type \"exit\" or \"quit\" to end the program");
-	puts("Type \"help\" for help dialog");
-	while(strcasecmp(userInput, "exit") && strcasecmp(userInput, "quit") && strcasecmp(userInput, "^[")) {
-		
-		printf(">>> "); // get input
-		scanf("%s", userInput);
+	char line[BUFSIZ];
+	int lineNo = 0;
 
-		loadAllModules(NULL, moduleNames,modpath, 0, userInput);
-		
-		if (!strcasecmp(userInput, "exit") || !strcasecmp(userInput, "quit")) {
+	puts("Type \"exit\" or \"quit\" to end the program");
+	puts("Type \"help\" for instructions");
+	printf(">>> "); // get input
+	while (fgets(line, BUFSIZ, stdin) != NULL) {
+		if (line[strlen(line)-1] == '\n') 
+			line[strlen(line)-1] = '\0'; 
+
+		// printf("line = %s\n", line);
+		if (loadAllModules(NULL, moduleNames,modpath, 0, line) < 0) {
+			fprintf(stderr, "Modules not successfully loaded\n");
+			exit (-1);
+		}
+
+		if (!strcasecmp(line, "exit") || !strcasecmp(line, "quit")) {
 			return 0;
-		} else if (!strcasecmp(userInput, "help")) {
+		} else if (!strcasecmp(line, "help")) {
 			puts("Type \"exit\" or \"quit\" to end the program");
 		}
+
+		printf(">>> "); // get input
 	}
 	return 0;
 }
@@ -174,6 +182,10 @@ main(int argc, char **argv)
 
 		// start code that can take it in as input
 		transformInput(moduleNames, modulePath);
+		unloadAllModules(loadedModules);
+	
+		destroyStringList(moduleNames);
+		free(loadedModules);
 		exit(0);
 	}
 
