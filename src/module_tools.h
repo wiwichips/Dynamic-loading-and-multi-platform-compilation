@@ -31,10 +31,12 @@
 typedef struct Module {
 	char *name;
 	void *data;
+	struct Module* self; // keep a reference to itself to be freed later
 
 	/** use an OS-specific type for the shared library */
 #	ifdef OS_WINDOWS
-	HINSTANCE sharedObject;
+	// HINSTANCE sharedObject;
+	HMODULE sharedObject;
 #	else
 	void *sharedObject;
 #	endif
@@ -54,9 +56,7 @@ ModuleList *createEmptyModuleList(int max);
 int destroyModuleList(ModuleList *list);
 
 /** load and unload all modules */
-int loadAllModules(
-		ModuleList *moduleList, StringList *moduleNames,
-		char *modpath, int verbosity);
+int loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, int verbosity, char* line);
 void unloadAllModules(ModuleList *modules);
 
 /** do the processing on a file */
@@ -64,7 +64,9 @@ int processFileWithModuleList(
 		FILE *ofp,
 		const char *filename,
 		ModuleList *moduleList,
-		int verbosity
+		int verbosity, 
+		StringList *moduleNames,
+		char *modpath
 	);
 
 /** constant definitions */

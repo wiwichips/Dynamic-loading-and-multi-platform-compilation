@@ -42,11 +42,64 @@ ModuleList *createEmptyModuleList(int max)
 	return newList;
 }
 
+// ModuleList* appendModuleToList(ModuleList* mList, char* moduleName, char* modpath, char* modName) {
+// 	char fname[20] = "";
+// 	Module* newMod = NULL;
+	
+// 	#ifndef OS_WINDOWS
+// 	void *libHandle = NULL;
+// 	#else
+// 	HMODULE libHandle = NULL;
+// 	#endif
+
+// 	#ifndef OS_WINDOWS
+// 	sprintf(fname, "%s%s.so", modpath, modName);
+// 	#else
+// 	sprintf(fname, "%s%s.dll", modpath, modName);
+// 	#endif
+	
+// 	// open the shared library
+// 	#ifndef OS_WINDOWS
+// 	libHandle = dlopen (fname, RTLD_LAZY);
+// 	#else
+// 	libHandle = LoadLibrary(fname);
+// 	#endif
+	
+// 	// check validity
+// 	if (libHandle == NULL) {
+// 		#ifndef OS_WINDOWS
+// 		fprintf(stderr, "Failed loading library : %s\n", dlerror());
+// 		dlerror();
+// 		#else
+// 		fprintf(stderr, "Failed loading library\n");
+// 		#endif
+// 		return NULL;
+// 	}
+
+// 	// now append the libhandle to the struct
+// 	if (mList->modList) {
+// 		mList->modList = malloc(sizeof(Module*) * ++(mList->nModules));
+// 	} else {
+// 		mList->modList = realloc(mList->modList, ++(mList->nModules) * sizeof(Module*));
+// 	}
+// 	newMod = malloc(sizeof(Module));
+// 	newMod->sharedObject = libHandle;
+// 	newMod->self = newMod;
+
+// 	// add the module to the mod list
+// 	(mList->modList)[mList->nModules - 1] = *newMod;
+
+// 	return mList;
+// }
+
 int destroyModuleList(ModuleList* mList) {
+	Module* mod = NULL;
 	// go through the modlist
 	for (int i = 0; i < mList->nModules; i++) {
-		free(mList->modList[i].name);
-		free(mList->modList[i].data);
+		// free(mList->modList[i].name);
+		// free(mList->modList[i].data);
+		mod = (mList->modList)[i].self;
+		free(mod);
 		//WINDOWS TODO ??? sharedObject
 		free(&(mList->modList[i]));
 	}
@@ -64,13 +117,17 @@ int destroyModuleList(ModuleList* mList) {
  * As the modules are loaded, they should be initialized.
  */
 int
-loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, int verbosity)
+loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, int verbosity, char* line)
 {
 	StringList *modulePathList;
 	int i;
-	char fname[20] = "";
+	char* fname = calloc(0, sizeof(char) * (strlen(modpath) + 256));
 	char* (*fnName)();
 	char* error;
+
+	// read in the file to get the information
+	char* textData = strdup(line);
+	char* textTemp = NULL;
 
 	// non windows based definitions
 	#ifndef OS_WINDOWS
@@ -124,11 +181,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		}
 
 		// get the pointer address of the function being called
-		#ifndef OS_WINDOWS
-		fnName = dlsym(libHandle, "transform"); // idea - make a dlsym wrapper 
-		#else
-		fnName = (char* (*) (char*) ) GetProcAddress(libHandle, "transform"); // idea - make a dlsym wrapper 
-		#endif
+		fnName = (char* (*) (char*) ) DL_FUNC(libHandle, "transform");
 		
 		// check validity
 		#ifndef OS_WINDOWS
@@ -136,6 +189,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 			fprintf (stderr, "DL error trying to find 'helloWorld' : %s\n", error);
 			return -1;
 		}
+		dlerror();
 		#else
 		if (!fnName) {
 			fprintf (stderr, "DL error trying to find 'helloWorld' : \n");
@@ -143,10 +197,11 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		}
 		#endif
 		
-		char* str = (*fnName)("he said: \"okay.\" Can you believe that?");
-		printf("transformed string: %s\n", str);
-		free(str);
-		str = NULL;
+		textTemp = textData;
+		textData = (*fnName)(textTemp);
+		// printf("transformed string: %s\n", textData);
+		free(textTemp);
+		textTemp = NULL;
 
 		// close the shared library with the handle
 		#ifndef OS_WINDOWS
@@ -156,10 +211,14 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		#endif
 	}
 
+	// print out the line
+	printf("%s\n", textData);
+
 	// free any memory etc
 	destroyStringList(modulePathList);
+	free(textData);
 
-	return moduleList->nModules;
+	return 0;
 }
 
 
@@ -213,53 +272,20 @@ unloadAllModules(ModuleList *modules)
  * the final result.
  */
 static int
-processFPWithModuleList(FILE *ofp,FILE *ifp,const char *filename,ModuleList *moduleList,int verbosity)
+processFPWithModuleList(FILE *ofp,FILE *ifp,const char *filename,ModuleList *moduleList,int verbosity, StringList *moduleNames, char *modpath)
 {
 	char line[BUFSIZ];
 	int lineNo = 0;
 
-
-	/**
-	 * Do any setup that is required in your code before
-	 * we get going...
-	 */
-	/* ... add your code here ... */
-
-
-	/**
-	 * Read lines, stopping when we get to EOF.  We can
-	 * assume that BUFSIZ is plenty of length for each line
-	 */
 	while (fgets(line, BUFSIZ, ifp) != NULL) {
-
-		/**
-		 * Remove the trailing '\n' -- we will print it out
-		 * separately below
-		 */
 		if (line[strlen(line)-1] == '\n') 
 			line[strlen(line)-1] = '\0'; 
 
-		/**
-		 * apply each module in turn to the line.
-		 */
-		/** ... add your code here ... */
-
-
-
-
-
-		/**
-		 * Now that we have applied all the modules to
-		 * this line, wite out the result of all of the
-		 * processing
-		 */
-		/** ... add your code here ... */
-		/*
-		fputs(finalLineBuffer, ofp);
-		*/
-
-		/** add in the \n that we took off above */
-		fputc('\n', ofp);
+		// printf("line = %s\n", line);
+		if (loadAllModules(NULL, moduleNames,modpath, verbosity, line) < 0) {
+			fprintf(stderr, "Modules not successfully loaded\n");
+			exit (-1);
+		}
 	}
 	
 	return 0;
@@ -271,7 +297,7 @@ processFPWithModuleList(FILE *ofp,FILE *ifp,const char *filename,ModuleList *mod
  * to the above function to actually do the processing.
  */
 int
-processFileWithModuleList(FILE *ofp,const char *filename,ModuleList *moduleList,int verbosity)
+processFileWithModuleList(FILE *ofp,const char *filename,ModuleList *moduleList,int verbosity, StringList *moduleNames, char *modpath)
 {
 	FILE *ifp;
 	int status;
@@ -284,9 +310,8 @@ processFileWithModuleList(FILE *ofp,const char *filename,ModuleList *moduleList,
 	}
 
 	status = processFPWithModuleList(ofp, ifp,
-			filename, moduleList, verbosity);
+			filename, moduleList, verbosity, moduleNames, modpath);
 
 	fclose(ifp);
 	return status;
 }
-

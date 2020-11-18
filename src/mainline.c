@@ -8,7 +8,7 @@
 #include <errno.h>
 
 #ifndef OS_WINDOWS
-# include <unistd.h>
+# include<unistd.h>
 # include <unistd.h> 
 #else
 # include <conio.h>
@@ -34,6 +34,27 @@ printHelp(char *progname)
 	printf("             : up of short module names: box, paren, quote, shout\n");
 	printf("\n");
 	exit (1);
+}
+
+int
+transformInput(StringList *moduleNames, char *modpath) {
+	char* userInput = calloc(5000, sizeof(char));
+	puts("Type \"exit\" or \"quit\" to end the program");
+	puts("Type \"help\" for help dialog");
+	while(strcasecmp(userInput, "exit") && strcasecmp(userInput, "quit") && strcasecmp(userInput, "^[")) {
+		
+		printf(">>> "); // get input
+		scanf("%s", userInput);
+
+		loadAllModules(NULL, moduleNames,modpath, 0, userInput);
+		
+		if (!strcasecmp(userInput, "exit") || !strcasecmp(userInput, "quit")) {
+			return 0;
+		} else if (!strcasecmp(userInput, "help")) {
+			puts("Type \"exit\" or \"quit\" to end the program");
+		}
+	}
+	return 0;
 }
 
 int
@@ -146,23 +167,27 @@ main(int argc, char **argv)
 	}
 
 	if (fileOnlyArgC <= 1) {
-		printf("Error: no files specified!\n");
-		printf("Provide at least one text file to process\n\n");
-		printHelp(argv[0]);
-		exit (-1);
+		// printf("Error: no files specified!\n");
+		// printf("Provide at least one text file to process\n\n");
+		// printHelp(argv[0]);
+		// exit (-1);
+
+		// start code that can take it in as input
+		transformInput(moduleNames, modulePath);
+		exit(0);
 	}
 
 
 	/*
 	 * Load all the modules
 	 */
-	if (loadAllModules(loadedModules, moduleNames,modulePath, verbosity) < 0) {
-		fprintf(stderr, "Modules not successfully loaded\n");
-		exit (-1);
-	}
+	// if (loadAllModules(loadedModules, moduleNames,modulePath, verbosity, NULL) < 0) {
+	// 	fprintf(stderr, "Modules not successfully loaded\n");
+	// 	exit (-1);
+	// }
 
 	for (i = 1; i < fileOnlyArgC; i++) {
-		if (processFileWithModuleList(ofp, argv[i], loadedModules, verbosity) < 0) {
+		if (processFileWithModuleList(ofp, argv[i], loadedModules, verbosity, moduleNames,modulePath) < 0) {
 			exitStatus = (-1);
 			break;
 		}
