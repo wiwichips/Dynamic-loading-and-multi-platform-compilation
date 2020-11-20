@@ -5,7 +5,7 @@ This assignment will let us talk aboutwriting portable, multi-platform codethat 
 
 # Design
 ## Memory Management
-Memory is managed
+Memory is managed by creating a dynamicly sized array based on the number of modules passed, once it has opened all of the modules, they are placed in the array. Then the program is executed. During this phase any temporary memory alocated (for example for each line of a text file) is freed directly after use. Finally, after completion, the dynamic array of modules is iterated through a loop that closes each library, and then frees the array data structure.
 
 
 # Testing
