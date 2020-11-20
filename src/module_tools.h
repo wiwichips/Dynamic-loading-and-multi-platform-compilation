@@ -71,6 +71,8 @@ int processFileWithModuleList(
 
 char* findCorrectPath(char* fname, StringList *modulePathList, char* modname);
 
+ModuleList* getModuleArray(StringList *moduleName, char* modpath);
+
 /** constant definitions */
 #define	VAR_MODPATH	"MODPATH"
 

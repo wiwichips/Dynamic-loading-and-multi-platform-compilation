@@ -42,66 +42,13 @@ ModuleList *createEmptyModuleList(int max)
 	return newList;
 }
 
-// ModuleList* appendModuleToList(ModuleList* mList, char* moduleName, char* modpath, char* modName) {
-// 	char fname[20] = "";
-// 	Module* newMod = NULL;
-	
-// 	#ifndef OS_WINDOWS
-// 	void *libHandle = NULL;
-// 	#else
-// 	HMODULE libHandle = NULL;
-// 	#endif
-
-// 	#ifndef OS_WINDOWS
-// 	sprintf(fname, "%s%s.so", modpath, modName);
-// 	#else
-// 	sprintf(fname, "%s%s.dll", modpath, modName);
-// 	#endif
-	
-// 	// open the shared library
-// 	#ifndef OS_WINDOWS
-// 	libHandle = dlopen (fname, RTLD_LAZY);
-// 	#else
-// 	libHandle = LoadLibrary(fname);
-// 	#endif
-	
-// 	// check validity
-// 	if (libHandle == NULL) {
-// 		#ifndef OS_WINDOWS
-// 		fprintf(stderr, "Failed loading library : %s\n", dlerror());
-// 		dlerror();
-// 		#else
-// 		fprintf(stderr, "Failed loading library\n");
-// 		#endif
-// 		return NULL;
-// 	}
-
-// 	// now append the libhandle to the struct
-// 	if (mList->modList) {
-// 		mList->modList = malloc(sizeof(Module*) * ++(mList->nModules));
-// 	} else {
-// 		mList->modList = realloc(mList->modList, ++(mList->nModules) * sizeof(Module*));
-// 	}
-// 	newMod = malloc(sizeof(Module));
-// 	newMod->sharedObject = libHandle;
-// 	newMod->self = newMod;
-
-// 	// add the module to the mod list
-// 	(mList->modList)[mList->nModules - 1] = *newMod;
-
-// 	return mList;
-// }
-
 int destroyModuleList(ModuleList* mList) {
-	Module* mod = NULL;
-	// go through the modlist
 	for (int i = 0; i < mList->nModules; i++) {
-		// free(mList->modList[i].name);
-		// free(mList->modList[i].data);
-		mod = (mList->modList)[i].self;
-		free(mod);
-		//WINDOWS TODO ??? sharedObject
-		free(&(mList->modList[i]));
+		#ifndef OS_WINDOWS
+		dlclose(mList->modList[i].sharedObject);
+		#else
+		FreeLibrary(mList->modList[i].sharedObject);
+		#endif
 	}
 	free(mList->modList);
 	// free(mList);
@@ -126,19 +73,18 @@ char* findCorrectPath(char* fname, StringList *modulePathList, char* modname) {
 			testFP = NULL;
 			return fname;
 		}
-
-		printf("MODPATH = %s\n", fname);
 	}
 
 	// if no path was found, return NULL
 	return NULL;
 }
 
-char** getModuleArray(StringList *moduleName, char* modpath) {
-	StringList *modulePathList;
-	FILE* testFP = NULL;
+ModuleList* getModuleArray(StringList *moduleName, char* modpath) {
+	StringList* modulePathList = NULL;
+	ModuleList* modListStruct = NULL;
+	char* fname = calloc(strlen(modpath) + 10, sizeof(char));
 
-	
+	modListStruct = createEmptyModuleList(64);
 
 	modulePathList = createEmptyStringList(256);
 	addStringsToListWithDelimiter(modulePathList, modpath,
@@ -149,15 +95,27 @@ char** getModuleArray(StringList *moduleName, char* modpath) {
 #			endif
 			);
 
-	for (int i = 0; i < modulePathList->nStrings; i++) {
+	for (int i = 0; i < moduleName->nStrings; i++) {
+		if (!findCorrectPath(fname, modulePathList, moduleName->strList[i])) {
+			fprintf(stderr, "Cannot find lthe ibrary %s in the modpath\n", moduleName->strList[i]);
+			exit(-1);
+		}
 
+		// open the shared library
+		#ifndef OS_WINDOWS
+		modListStruct->modList[i].sharedObject = dlopen (fname, RTLD_LAZY);
+		#else
+		modListStruct->modList[i].sharedObject = LoadLibrary(fname);
+		#endif
+		modListStruct->nModules++;
 	}
 
 	// clean up temporary memory allocations
 	destroyStringList(modulePathList);
+	free(fname);
 
 	// if no path was found, return NULL
-	return NULL;
+	return modListStruct;
 }
 
 /**
@@ -188,34 +146,59 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 	#else
 	HMODULE libHandle = NULL;
 	#endif
+	
+	if (moduleList) { // delet <<<<<<<<<<<<,
 
-	/**
-	 * Convert path to a list of strings.  This will leave
-	 * you a nice list of strings with each path component
-	 * that you can use in your search.
-	 *
-	 * Notice how the OS_WINDOWS macro from os_defs is
-	 * used here to figure out if we are on Windows or
-	 * not in order to use the right path delimiter.
-	 */
-	modulePathList = createEmptyStringList(256);
-	addStringsToListWithDelimiter(modulePathList, modpath,
-#			ifdef	OS_WINDOWS
-			";"
-#			else
-			":"
-#			endif
-			);
+	for (i = 0; i < moduleList->nModules; i++) {
+		libHandle = moduleList->modList[i].sharedObject;
+		
+		// check validity
+		if (libHandle == NULL) {
+			#ifndef OS_WINDOWS
+			fprintf(stderr, "Failed loading library : %s\n", dlerror());
+			dlerror();
+			#else
+			fprintf(stderr, "Failed loading library\n");
+			#endif
+			return -1;
+		}
 
+		// get the pointer address of the function being called
+		fnName = (char* (*) (char*) ) DL_FUNC(libHandle, "transform");
+		
+		// check validity
+		#ifndef OS_WINDOWS
+		if ((error = dlerror()) != NULL)  {
+			fprintf (stderr, "DL error trying to find 'helloWorld' : %s\n", error);
+			return -1;
+		}
+		dlerror();
+		#else
+		if (!fnName) {
+			fprintf (stderr, "DL error trying to find 'helloWorld' : \n");
+			return -1;
+		}
+		#endif
+		
+		textTemp = textData;
+		textData = (*fnName)(textTemp);
+		free(textTemp);
+		textTemp = NULL;
+	}
+
+	} else { // delet <<<<<<<<<<<<,
+	printf("SOON TO BE DEPRECATED ~ \n");
 	// load all modules passed
 	for (i = 0; i < moduleNames->nStrings; i++) {
-		/*
-		#ifndef OS_WINDOWS
-		sprintf(fname, "%s%s.so", modpath, moduleNames->strList[i]);
-		#else
-		sprintf(fname, "%s%s.dll", modpath, moduleNames->strList[i]);
-		#endif
-		*/
+		modulePathList = createEmptyStringList(256);
+		addStringsToListWithDelimiter(modulePathList, modpath,
+#		ifdef	OS_WINDOWS
+				";"
+#		else
+				":"
+#		endif
+				);
+
 		if (!findCorrectPath(fname, modulePathList, moduleNames->strList[i])) {
 			fprintf(stderr, "Cannot find library %s in the modpath\n", moduleNames->strList[i]);
 			exit(-1);
@@ -227,8 +210,6 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		#else
 		libHandle = LoadLibrary(fname);
 		#endif
-
-		// try top open the shared library
 		
 		// check validity
 		if (libHandle == NULL) {
@@ -270,16 +251,16 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		#else
 		FreeLibrary(libHandle);
 		#endif
-	}
 
-	// print out the line
+		destroyStringList(modulePathList);
+	}
+	} // delet <<<<<<<<<<<<,
+
 	printf("%s\n", textData);
 
 	// free any memory etc
-	destroyStringList(modulePathList);
 	free(textData);
 	// free(fname);
-
 	return 0;
 }
 
@@ -344,7 +325,7 @@ processFPWithModuleList(FILE *ofp,FILE *ifp,const char *filename,ModuleList *mod
 			line[strlen(line)-1] = '\0'; 
 
 		// printf("line = %s\n", line);
-		if (loadAllModules(NULL, moduleNames,modpath, verbosity, line) < 0) {
+		if (loadAllModules(moduleList, moduleNames,modpath, verbosity, line) < 0) {
 			fprintf(stderr, "Modules not successfully loaded\n");
 			exit (-1);
 		}

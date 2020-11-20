@@ -37,7 +37,7 @@ printHelp(char *progname)
 }
 
 int
-transformInput(StringList *moduleNames, char *modpath) {
+transformInput(StringList *moduleNames, char *modpath, ModuleList *loadedModules) {
 	char line[BUFSIZ];
 	int lineNo = 0;
 
@@ -49,7 +49,7 @@ transformInput(StringList *moduleNames, char *modpath) {
 			line[strlen(line)-1] = '\0'; 
 
 		// printf("line = %s\n", line);
-		if (loadAllModules(NULL, moduleNames,modpath, 0, line) < 0) {
+		if (loadAllModules(loadedModules, moduleNames,modpath, 0, line) < 0) {
 			fprintf(stderr, "Modules not successfully loaded\n");
 			exit (-1);
 		}
@@ -167,15 +167,15 @@ main(int argc, char **argv)
 	}
 
 	// get array of modules
-	
+	ModuleList* moduleList = getModuleArray(moduleNames, modulePath);
 
 	// open the file and transform it
 	if (fileOnlyArgC <= 1) {
-		transformInput(moduleNames, modulePath);
+		transformInput(moduleNames, modulePath, moduleList);
 	} else {
 		// transform line by line
 		for (i = 1; i < fileOnlyArgC; i++) {
-			if (processFileWithModuleList(ofp, argv[i], loadedModules, verbosity, moduleNames,modulePath) < 0) {
+			if (processFileWithModuleList(ofp, argv[i], moduleList, verbosity, moduleNames,modulePath) < 0) {
 				exitStatus = (-1);
 				break;
 			}
@@ -183,6 +183,8 @@ main(int argc, char **argv)
 	}
 
 	// clean up 
+	destroyModuleList(moduleList);
+	free(moduleList);
 	unloadAllModules(loadedModules);
 	destroyStringList(moduleNames);
 	free(loadedModules);
