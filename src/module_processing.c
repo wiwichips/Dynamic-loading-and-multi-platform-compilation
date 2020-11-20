@@ -256,7 +256,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 	}
 	} // delet <<<<<<<<<<<<,
 
-	printf("%s\n", textData);
+	// printf("%s\n", textData);
 
 	// free any memory etc
 	free(textData);
