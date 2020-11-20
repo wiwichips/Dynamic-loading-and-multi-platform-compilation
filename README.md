@@ -33,4 +33,5 @@ Purpose: ensure the user input works
 #### Test 5
 Purpose: Ensure the modules are applied in the correct order.
 
-**How it shows it works**: This will check if paren, quote, box, and shout are applied in the correct order. Shout is idempotent and associative - so this test checks if shout works in general.
+**How it shows it works**: This will check if paren, quote, box, and shout are applied in the correct order. Shout is idempotent and associative - so this test checks if shout works in general. This also tests if the initialization and finalization (de-initialization) works. THis also tests if the paren, quote, box, and all work properly.
+
