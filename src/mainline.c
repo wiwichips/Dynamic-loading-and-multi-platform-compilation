@@ -72,6 +72,7 @@ main(int argc, char **argv)
 	ModuleList *loadedModules;
 	StringList *moduleNames;
 	char *modulePath = NULL;
+	char* modulePathENV = NULL;
 	char *optionArg;
 	int verbosity = 0;
 	int processingStatus = 0;
@@ -86,13 +87,8 @@ main(int argc, char **argv)
 	loadedModules = createEmptyModuleList(MAX_N_MODULES);
 	moduleNames = createEmptyStringList(MAX_N_MODULES);
 
-
-	/**
-	 * Get the environment variable whose name is stored in VAR_MODPATH
-	 *
-	 * i.e.; modulePath = <get the environment variable value>
-	 */
-	modulePath = getenv(VAR_MODPATH);
+	//Get the environment variable whose name is stored in VAR_MODPATH
+	modulePathENV = getenv(VAR_MODPATH);
 
 	/** there is no getopt on Windows, so just do the work ourselves */
 	for (i = 1; i < argc; i++) {
@@ -162,10 +158,6 @@ main(int argc, char **argv)
 		}
 	}
 
-	/**
-	 ** Prepare to process the files -- set up the module system
-	 **/
-
 	/** if no modules are loaded yet, try the "default" module */
 	if (moduleNames->nStrings == 0) {
 		printf("Error: no modules specified!\n");
@@ -174,45 +166,26 @@ main(int argc, char **argv)
 		exit (-1);
 	}
 
-	if (fileOnlyArgC <= 1) {
-		// printf("Error: no files specified!\n");
-		// printf("Provide at least one text file to process\n\n");
-		// printHelp(argv[0]);
-		// exit (-1);
-
-		// start code that can take it in as input
-		transformInput(moduleNames, modulePath);
-		unloadAllModules(loadedModules);
+	// get array of modules
 	
-		destroyStringList(moduleNames);
-		free(loadedModules);
-		exit(0);
-	}
 
-
-	/*
-	 * Load all the modules
-	 */
-	// if (loadAllModules(loadedModules, moduleNames,modulePath, verbosity, NULL) < 0) {
-	// 	fprintf(stderr, "Modules not successfully loaded\n");
-	// 	exit (-1);
-	// }
-
-	for (i = 1; i < fileOnlyArgC; i++) {
-		if (processFileWithModuleList(ofp, argv[i], loadedModules, verbosity, moduleNames,modulePath) < 0) {
-			exitStatus = (-1);
-			break;
+	// open the file and transform it
+	if (fileOnlyArgC <= 1) {
+		transformInput(moduleNames, modulePath);
+	} else {
+		// transform line by line
+		for (i = 1; i < fileOnlyArgC; i++) {
+			if (processFileWithModuleList(ofp, argv[i], loadedModules, verbosity, moduleNames,modulePath) < 0) {
+				exitStatus = (-1);
+				break;
+			}
 		}
 	}
 
-	/**
-	 * clean everything up
-	 */
+	// clean up 
 	unloadAllModules(loadedModules);
-	
 	destroyStringList(moduleNames);
 	free(loadedModules);
-
 	return exitStatus;
 }
 

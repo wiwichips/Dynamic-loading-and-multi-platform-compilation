@@ -108,6 +108,58 @@ int destroyModuleList(ModuleList* mList) {
 	return 0;
 }
 
+char* findCorrectPath(char* fname, StringList *modulePathList, char* modname) {
+
+	FILE* testFP = NULL;
+	for (int i = 0; i < modulePathList->nStrings; i++) {
+
+		#ifndef OS_WINDOWS
+		sprintf(fname, "%s%s.so", modulePathList->strList[i], modname);
+		#else
+		sprintf(fname, "%s%s.dll", modulePathList->strList[i], modname);
+		#endif
+
+		// check if the file exists, if it does return this string
+		testFP = fopen(fname, "r");
+		if (testFP) {
+			fclose(testFP);
+			testFP = NULL;
+			return fname;
+		}
+
+		printf("MODPATH = %s\n", fname);
+	}
+
+	// if no path was found, return NULL
+	return NULL;
+}
+
+char** getModuleArray(StringList *moduleName, char* modpath) {
+	StringList *modulePathList;
+	FILE* testFP = NULL;
+
+	
+
+	modulePathList = createEmptyStringList(256);
+	addStringsToListWithDelimiter(modulePathList, modpath,
+#			ifdef	OS_WINDOWS
+			";"
+#			else
+			":"
+#			endif
+			);
+
+	for (int i = 0; i < modulePathList->nStrings; i++) {
+
+	}
+
+	// clean up temporary memory allocations
+	destroyStringList(modulePathList);
+
+	// if no path was found, return NULL
+	return NULL;
+}
+
 /**
  * Load all the modules.  The short names are provided in the
  * moduleNames list of strings, and there is a Module structure
@@ -157,11 +209,17 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 
 	// load all modules passed
 	for (i = 0; i < moduleNames->nStrings; i++) {
+		/*
 		#ifndef OS_WINDOWS
 		sprintf(fname, "%s%s.so", modpath, moduleNames->strList[i]);
 		#else
 		sprintf(fname, "%s%s.dll", modpath, moduleNames->strList[i]);
 		#endif
+		*/
+		if (!findCorrectPath(fname, modulePathList, moduleNames->strList[i])) {
+			fprintf(stderr, "Cannot find library %s in the modpath\n", moduleNames->strList[i]);
+			exit(-1);
+		}
 		
 		// open the shared library
 		#ifndef OS_WINDOWS
@@ -169,6 +227,8 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 		#else
 		libHandle = LoadLibrary(fname);
 		#endif
+
+		// try top open the shared library
 		
 		// check validity
 		if (libHandle == NULL) {
