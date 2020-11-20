@@ -17,6 +17,10 @@ Memory is managed by creating a dynamicly sized array based on the number of mod
 
 # Testing
 
+Run individual tests by typing ./testN.bash where N represents the test number. For example ./test1.bash
+
+There are 5 tests, test1.bash, test2.bash, test3.bash, test4.bash, test5.bash
+
 #### Test 1
 Purpose: verify the code can properly dynamically allocate memory for a long line from a text file as well as properly free memory in all oter parts of the system such as loading and closing a dynanmic library.
 
