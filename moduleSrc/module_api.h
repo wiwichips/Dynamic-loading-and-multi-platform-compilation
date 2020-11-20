@@ -4,6 +4,8 @@
 // returns a malloc'd string
 OS_EXPORT char* OS_C_DECL
 transform(char* str);
+OS_EXPORT void OS_C_DECL hello();
+OS_EXPORT void OS_C_DECL goodbye();
 
 // used by transform to add a character to the start and end
 char* stringWrap(char* str, char start, char end) {

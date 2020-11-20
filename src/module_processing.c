@@ -42,8 +42,36 @@ ModuleList *createEmptyModuleList(int max)
 	return newList;
 }
 
+int helloGoodbye(Module mod, char* funcName) {
+	void (*fnName)();
+	char* error;
+	
+	// get the pointer address of the function being called
+	fnName = (void (*) () ) DL_FUNC(mod.sharedObject, funcName);
+	
+	// check validity
+	#ifndef OS_WINDOWS
+	if ((error = dlerror()) != NULL)  {
+		fprintf (stderr, "DL error trying to find '%s' : %s\n", error, funcName);
+		return -1;
+	}
+	dlerror();
+	#else
+	if (!fnName) {
+		fprintf (stderr, "DL error trying to find '%s' : \n", funcName);
+		return -1;
+	}
+	#endif
+	
+	(*fnName)();
+	return 0;
+}
+
 int destroyModuleList(ModuleList* mList) {
 	for (int i = 0; i < mList->nModules; i++) {
+		// call the goodbye function
+		helloGoodbye(mList->modList[i], "goodbye");
+		// close the library
 		#ifndef OS_WINDOWS
 		dlclose(mList->modList[i].sharedObject);
 		#else
@@ -56,14 +84,13 @@ int destroyModuleList(ModuleList* mList) {
 }
 
 char* findCorrectPath(char* fname, StringList *modulePathList, char* modname) {
-
 	FILE* testFP = NULL;
 	for (int i = 0; i < modulePathList->nStrings; i++) {
 
 		#ifndef OS_WINDOWS
-		sprintf(fname, "%s%s.so", modulePathList->strList[i], modname);
+		sprintf(fname, "%s/%s.so", modulePathList->strList[i], modname);
 		#else
-		sprintf(fname, "%s%s.dll", modulePathList->strList[i], modname);
+		sprintf(fname, "%s/%s.dll", modulePathList->strList[i], modname);
 		#endif
 
 		// check if the file exists, if it does return this string
@@ -79,25 +106,52 @@ char* findCorrectPath(char* fname, StringList *modulePathList, char* modname) {
 	return NULL;
 }
 
-ModuleList* getModuleArray(StringList *moduleName, char* modpath) {
+ModuleList* getModuleArray(StringList *moduleName, char* modpath, char* envmod) {
 	StringList* modulePathList = NULL;
 	ModuleList* modListStruct = NULL;
-	char* fname = calloc(strlen(modpath) + 10, sizeof(char));
-
+	int maxModLength = 0;
+	
+	if (!modpath && !envmod) {
+		fprintf(stderr, "No modules have been passed\n");
+		exit(-1);
+	}
+	
+	if (modpath) {
+		maxModLength += strlen(modpath);
+	} 
+	if (envmod) {
+		maxModLength += strlen(envmod);
+	}
+	
+	char* fname = calloc(maxModLength + 10, sizeof(char));
 	modListStruct = createEmptyModuleList(64);
-
 	modulePathList = createEmptyStringList(256);
-	addStringsToListWithDelimiter(modulePathList, modpath,
-#			ifdef	OS_WINDOWS
-			";"
-#			else
-			":"
-#			endif
-			);
+	
+	// add the module paths from user input
+	if (modpath) {
+		addStringsToListWithDelimiter(modulePathList, modpath,
+#				ifdef	OS_WINDOWS
+				";"
+#				else
+				":"
+#				endif
+				);
+	}
+	
+	// add the enviroment variable
+	if (envmod) {
+		addStringsToListWithDelimiter(modulePathList, envmod,
+#				ifdef	OS_WINDOWS
+				";"
+#				else
+				":"
+#				endif
+				);
+	}
 
 	for (int i = 0; i < moduleName->nStrings; i++) {
 		if (!findCorrectPath(fname, modulePathList, moduleName->strList[i])) {
-			fprintf(stderr, "Cannot find lthe ibrary %s in the modpath\n", moduleName->strList[i]);
+			fprintf(stderr, "Cannot find ibrary %s in the modpath\n", moduleName->strList[i]);
 			exit(-1);
 		}
 
@@ -107,6 +161,10 @@ ModuleList* getModuleArray(StringList *moduleName, char* modpath) {
 		#else
 		modListStruct->modList[i].sharedObject = LoadLibrary(fname);
 		#endif
+		
+		// call init funciton
+		helloGoodbye(modListStruct->modList[i], "hello");
+		
 		modListStruct->nModules++;
 	}
 
@@ -256,7 +314,7 @@ loadAllModules(ModuleList *moduleList, StringList *moduleNames, char *modpath, i
 	}
 	} // delet <<<<<<<<<<<<,
 
-	// printf("%s\n", textData);
+	printf("%s\n", textData);
 
 	// free any memory etc
 	free(textData);
@@ -275,7 +333,7 @@ unloadAllModules(ModuleList *modules)
 	void (*termSymb)(void *);
 	int i;
 
-	puts("unloadAllModules just called");
+	// puts("unloadAllModules just called");
 	destroyModuleList(modules);
 
 	for (i = 0; i < modules->nModules; i++) {

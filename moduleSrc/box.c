@@ -41,6 +41,18 @@ someFunction(char *data)
 {
 }
 
+OS_EXPORT void OS_C_DECL
+hello()
+{
+	puts("Init: Module Box has been initialized");
+}
+
+OS_EXPORT void OS_C_DECL
+goodbye()
+{
+	puts("Done: Module Box has been de-initialized");
+}
+
 OS_EXPORT char* OS_C_DECL
 transform(char* str) {
   return stringWrap(str, '[', ']');

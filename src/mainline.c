@@ -12,6 +12,7 @@
 # include <unistd.h> 
 #else
 # include <conio.h>
+# define strcasecmp _stricmp
 #endif
 
 #include "module_tools.h"
@@ -167,7 +168,7 @@ main(int argc, char **argv)
 	}
 
 	// get array of modules
-	ModuleList* moduleList = getModuleArray(moduleNames, modulePath);
+	ModuleList* moduleList = getModuleArray(moduleNames, modulePath, modulePathENV);
 
 	// open the file and transform it
 	if (fileOnlyArgC <= 1) {

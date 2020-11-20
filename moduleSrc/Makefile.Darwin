@@ -12,8 +12,14 @@ OBJ_SHOUT	= shout.o
 LIB_BOX	= ../modules/box.so
 OBJ_BOX	= box.o 
 
-LIBS = $(LIB_SHOUT) $(LIB_BOX)
-OBJS = $(OBJ_SHOUT) $(OBJ_BOX)
+LIB_PARAN	= ../modules/paren.so
+OBJ_PARAN	= paren.o 
+
+LIB_QUOTE	= ../modules/quote.so
+OBJ_QUOTE	= quote.o 
+
+LIBS = $(LIB_SHOUT) $(LIB_BOX) $(LIB_PARAN) $(LIB_QUOTE)
+OBJS = $(OBJ_SHOUT) $(OBJ_BOX) $(OBJ_PARAN) $(OBJ_QUOTE)
 
 ## Build everything by default
 all world : $(LIBS)
@@ -23,6 +29,12 @@ $(LIB_SHOUT):	$(OBJ_SHOUT)
 
 $(LIB_BOX):	$(OBJ_BOX)
 	$(CC) -dynamiclib -Wl,-dylib,-o,$(LIB_BOX) $(OBJ_BOX)
+
+$(LIB_PARAN):	$(OBJ_PARAN)
+	$(CC) -dynamiclib -Wl,-dylib,-o,$(LIB_PARAN) $(OBJ_PARAN)
+
+$(LIB_QUOTE):	$(OBJ_QUOTE)
+	$(CC) -dynamiclib -Wl,-dylib,-o,$(LIB_QUOTE) $(OBJ_QUOTE)
 
 clean:
 	- rm -f $(LIBS)

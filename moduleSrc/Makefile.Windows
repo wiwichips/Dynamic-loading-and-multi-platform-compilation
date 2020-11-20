@@ -7,22 +7,22 @@
 ##	---------
 ##
 
-MYDLL	= shout.dll
+MYDLL	= ..\modules\shout.dll
 MYLIB	= shout.lib
 MYEXP	= shout.exp
 MYOBJS	= shout.obj
 
-BOXDLL	= box.dll
+BOXDLL	= ..\modules\box.dll
 BOXLIB	= box.lib
 BOXEXP	= box.exp
 BOXOBJ  = box.obj
 
-quoteDLL	= quote.dll
+quoteDLL	= ..\modules\quote.dll
 QUOTELIB	= quote.lib
 quoteEXP	= quote.exp
 quoteOBJ	= quote.obj
 
-parenDLL	= paren.dll
+parenDLL	= ..\modules\paren.dll
 PARENLIB	= paren.lib
 parenEXP	= paren.exp
 parenOBJ	= paren.obj
