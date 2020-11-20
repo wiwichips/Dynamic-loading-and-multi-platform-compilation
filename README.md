@@ -30,6 +30,7 @@ Purpose: ensure the user input works
 
 **How it shows it works**: This will check if the user input prompt works. This will also check if quote functionality from the quote module works properly. 
 
+#### Test 5
+Purpose: Ensure the modules are applied in the correct order.
 
-
-
+**How it shows it works**: This will check if paren, quote, box, and shout are applied in the correct order. Shout is idempotent and associative - so this test checks if shout works in general.
