@@ -4,6 +4,11 @@
 This assignment will let us talk aboutwriting portable, multi-platform codethat loads and uses pluggablemodules. This is a very commonsystem design pattern.Note that this is an individualassignment.
 
 # Design
+
+This program follows the design given for the assignment. It takes in a colon (or semi colon on Windows) list of module paths, a comma seperated list of modules, and either a file name or if no file name is passed it takes in user input with a triple chevron prompt (>>>). 
+
+The system starts by loading each module into an array data structure (discussed more in the memory management section). Then it iterates through each line of the file or from STDIN and applies a tranformation function unique to each module to the 
+
 ## Memory Management
 Memory is managed by creating a dynamicly sized array based on the number of modules passed, once it has opened all of the modules, they are placed in the array. Then the program is executed. During this phase any temporary memory alocated (for example for each line of a text file) is freed directly after use. Finally, after completion, the dynamic array of modules is iterated through a loop that closes each library, and then frees the array data structure.
 
