@@ -1,8 +1,0 @@
-#!/bin/sh
-
-set -x
-MODDIR=`pwd`/../modules
-
-./modFormatter -p${MODDIR} -m shout testdata.txt
-
-
